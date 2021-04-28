@@ -1,23 +1,12 @@
-FROM jenkins/jenkins:lts
-
+FROM jenkins/jenkins:lts-slim
 USER root
 
-# Install the latest Docker CE binaries and add user `jenkins` to the docker group
-RUN apt-get update && \
-    apt-get -y --no-install-recommends install apt-transport-https \
-      ca-certificates \
-      curl \
-      gnupg2 \
-      software-properties-common && \
-    curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg > /tmp/dkey; apt-key add /tmp/dkey && \
-    add-apt-repository \
-      "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
-      $(lsb_release -cs) \
-      stable" && \
-   apt-get update && \
-   apt-get -y --no-install-recommends install docker-ce && \
-   apt-get clean && \
-   usermod -aG docker jenkins
+RUN mkdir -p /tmp/download && \
+ curl -L https://download.docker.com/linux/static/stable/x86_64/docker-18.03.1-ce.tgz | tar -xz -C /tmp/download && \
+ rm -rf /tmp/download/docker/dockerd && \
+ mv /tmp/download/docker/docker* /usr/local/bin/ && \
+ rm -rf /tmp/download && \
+ groupadd -g 999 docker && \
+ usermod -aG staff,docker jenkins
 
-# drop back to the regular jenkins user - good practice
 USER jenkins
